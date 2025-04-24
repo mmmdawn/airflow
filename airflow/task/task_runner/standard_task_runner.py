@@ -203,16 +203,23 @@ class StandardTaskRunner(BaseTaskRunner):
     def _read_task_utilization(self):
         dag_id = self._task_instance.dag_id
         task_id = self._task_instance.task_id
+        map_index = self._task_instance.map_index
+        if map_index != -1:
+            task_id = f"{task_id}_{map_index}"
 
         try:
             while True:
                 with self.process.oneshot():
-                    mem_usage = self.process.memory_percent()
-                    cpu_usage = self.process.cpu_percent()
+                    mem_usage = self.process.memory_info().rss
+                    cpu_usage = sum(self.process.cpu_times())
 
-                    Stats.gauge(f"task.mem_usage.{dag_id}.{task_id}", mem_usage)
-                    Stats.gauge(f"task.cpu_usage.{dag_id}.{task_id}", cpu_usage)
-                    time.sleep(5)
+                    Stats.gauge(stat=f"task.mem_usage",
+                                value=mem_usage,
+                                tags={'dag_id': dag_id, 'task_id': task_id})
+                    Stats.gauge(stat=f"task.cpu_usage",
+                                value=cpu_usage,
+                                tags={'dag_id': dag_id, 'task_id': task_id})
+                    time.sleep(15)
         except (psutil.NoSuchProcess, psutil.AccessDenied, AttributeError):
             self.log.info("Process not found (most likely exited), stop collecting metrics")
             return
