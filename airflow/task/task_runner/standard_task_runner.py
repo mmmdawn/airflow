@@ -180,6 +180,17 @@ class StandardTaskRunner(BaseTaskRunner):
             rcs = reap_process_group(self.process.pid, self.log)
             self._rc = rcs.get(self.process.pid)
 
+        dag_id = self._task_instance.dag_id
+        task_id = self._task_instance.task_id
+        map_index = self._task_instance.map_index
+        if map_index != -1:
+            task_id = f"{task_id}_{map_index}"
+        with self.process.oneshot():
+            cpu_usage = sum(self.process.cpu_times())
+            Stats.gauge(stat=f"task.cpu_times",
+                        value=cpu_usage,
+                        tags={'dag_id': dag_id, 'task_id': task_id})
+
         self.process = None
 
         if self._rc is None:
