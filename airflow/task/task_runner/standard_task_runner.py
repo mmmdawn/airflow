@@ -210,7 +210,7 @@ class StandardTaskRunner(BaseTaskRunner):
         try:
             while True:
                 with self.process.oneshot():
-                    mem_usage = self.process.memory_info().rss
+                    mem_usage = self.process.memory_info().rss / 1024 ** 2
                     cpu_usage = sum(self.process.cpu_times())
 
                     Stats.gauge(stat=f"task.mem_usage",
