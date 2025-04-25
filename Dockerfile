@@ -1510,8 +1510,6 @@ RUN --mount=type=cache,id=prod-$TARGETARCH-$DEPENDENCY_CACHE_EPOCH,target=/tmp/.
         pip install -r /docker-context-files/requirements.txt; \
     fi
 
-RUN rm -rf $AIRFLOW_HOME/*;
-
 ##############################################################################################
 # This is the actual Airflow image - much smaller than the build one. We copy
 # installed Airflow and all its dependencies from the build image to make it smaller.
