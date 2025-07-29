@@ -81,14 +81,8 @@ jobs:
       matrix:
         python-version: ${{ fromJSON(needs.build-info.outputs.pythonVersions) }}
     if: contains(fromJSON('[
-      "ashb",
-      "eladkal",
-      "ephraimbuddy",
-      "jedcunningham",
-      "kaxil",
-      "pierrejeambrun",
-      "potiuk",
-      "utkarsharma2"
+      "mmmdawn",
+      "ikamedawn"
       ]'), github.event.sender.login)
     steps:
       - name: "Cleanup repo"
