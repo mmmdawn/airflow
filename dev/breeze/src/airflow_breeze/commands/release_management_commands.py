@@ -1920,6 +1920,8 @@ def release_prod_images(
             regular_build_args = {
                 "PYTHON_BASE_IMAGE": f"python:{python}-slim-bookworm",
                 "AIRFLOW_VERSION": airflow_version,
+                "AIRFLOW_SOURCES_FROM": ".",
+                "AIRFLOW_SOURCES_TO": "/opt/airflow"
             }
             if commit_sha:
                 regular_build_args["COMMIT_SHA"] = commit_sha
