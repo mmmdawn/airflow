@@ -173,22 +173,6 @@ jobs:
           --limit-python ${PYTHON_VERSION}
           --chicken-egg-providers "${CHICKEN_EGG_PROVIDERS}"
       - name: >
-          Release slim images: ${{ github.event.inputs.airflowVersion }}, ${{ matrix.python-version }}
-        env:
-          COMMIT_SHA: ${{ github.sha }}
-          REPOSITORY: ${{ github.repository }}
-          PYTHON_VERSION: ${{ matrix.python-version }}
-          AIRFLOW_VERSION: ${{ github.event.inputs.airflowVersion }}
-          SKIP_LATEST: ${{ needs.build-info.outputs.skipLatest }}
-          LIMIT_PLATFORM: ${{ needs.build-info.outputs.limitPlatform }}
-        run: >
-          breeze release-management release-prod-images
-          --dockerhub-repo "${REPOSITORY}"
-          --airflow-version "${AIRFLOW_VERSION}"
-          ${SKIP_LATEST}
-          ${LIMIT_PLATFORM}
-          --limit-python ${PYTHON_VERSION} --slim-images
-      - name: >
           Verify regular AMD64 image: ${{ github.event.inputs.airflowVersion }}, ${{ matrix.python-version }}
         env:
           PYTHON_VERSION: ${{ matrix.python-version }}
@@ -199,18 +183,6 @@ jobs:
           --pull
           --image-name
           ${REPOSITORY}:${AIRFLOW_VERSION}-python${PYTHON_VERSION}
-      - name: >
-          Verify slim AMD64 image: ${{ github.event.inputs.airflowVersion }}, ${{ matrix.python-version }}
-        env:
-          PYTHON_VERSION: ${{ matrix.python-version }}
-          AIRFLOW_VERSION: ${{ github.event.inputs.airflowVersion }}
-          REPOSITORY: ${{ github.repository }}
-        run: >
-          breeze prod-image verify
-          --pull
-          --slim-image
-          --image-name
-          ${REPOSITORY}:slim-${AIRFLOW_VERSION}-python${PYTHON_VERSION}
       - name: "Docker logout"
         run: docker logout
         if: always()
