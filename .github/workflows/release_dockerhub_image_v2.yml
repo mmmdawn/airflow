@@ -52,16 +52,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: "Cleanup docker"
-        run: ./scripts/ci/cleanup_docker.sh
+#      - name: "Cleanup docker"
+#        run: ./scripts/ci/cleanup_docker.sh
       - name: "Install Breeze"
         uses: ./.github/actions/breeze
         with:
           use-uv: "false"
       - name: "Build custom Airflow wheel package"
-        run: >
-          breeze release-management prepare-airflow-package
-          --package-format wheel
+        run: |
+          breeze release-management prepare-airflow-package --package-format wheel;
+          cp ./dist/* ./docker-context-files;
       - name: "Login to hub.docker.com"
         run: >
           echo ${{ secrets.DOCKERHUB_TOKEN }} |
