@@ -52,8 +52,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-#      - name: "Cleanup docker"
-#        run: ./scripts/ci/cleanup_docker.sh
+      - name: "Cleanup docker"
+        run: ./scripts/ci/cleanup_docker.sh
       - name: "Install Breeze"
         uses: ./.github/actions/breeze
         with:
@@ -62,21 +62,36 @@ jobs:
         run: |
           breeze release-management prepare-airflow-package --package-format wheel;
           cp ./dist/* ./docker-context-files;
-      - name: "Login to hub.docker.com"
-        run: >
-          echo ${{ secrets.DOCKERHUB_TOKEN }} |
-          docker login --password-stdin --username ${{ secrets.DOCKERHUB_USER }}
       - name: Login to ghcr.io
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ACTOR: ${{ github.actor }}
         run: echo "${GITHUB_TOKEN}" | docker login ghcr.io -u ${ACTOR} --password-stdin
+      - name: "Install buildx plugin"
+        # yamllint disable rule:line-length
+        run: |
+          sudo apt-get update
+          sudo apt-get install ca-certificates curl
+          sudo install -m 0755 -d /etc/apt/keyrings
+          sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+          sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+          # Add the repository to Apt sources:
+          echo \
+          "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+          $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+          sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+          sudo apt-get update
+          sudo apt install docker-buildx-plugin
+      - name: "Create airflow_cache builder"
+        run: docker buildx create --name airflow_cache
       - name: "Build and push the custom PROD image"
         run: |
           breeze prod-image build \
-            --python python:${{ github.event.inputs.pythonVersion }}-slim-bookworm \
+            --python-image python:${{ github.event.inputs.pythonVersion }}-slim-bookworm \
             --airflow-constraints-location https://raw.githubusercontent.com/apache/airflow/constraints-${{ github.event.inputs.airflowVersion }}/constraints-${{ github.event.inputs.pythonVersion }}.txt \
             --install-packages-from-context \
+            --version-suffix-for-pypi "" \
             --push \
             --platform linux/amd64 \
             --use-uv \
