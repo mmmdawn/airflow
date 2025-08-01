@@ -58,15 +58,6 @@ jobs:
         uses: ./.github/actions/breeze
         with:
           use-uv: "false"
-      - name: "Build custom Airflow wheel package"
-        run: |
-          breeze release-management prepare-airflow-package --package-format wheel;
-          cp ./dist/* ./docker-context-files;
-      - name: Login to ghcr.io
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ACTOR: ${{ github.actor }}
-        run: echo "${GITHUB_TOKEN}" | docker login ghcr.io -u ${ACTOR} --password-stdin
       - name: "Install buildx plugin"
         # yamllint disable rule:line-length
         run: |
@@ -85,9 +76,19 @@ jobs:
           sudo apt install docker-buildx-plugin
       - name: "Create airflow_cache builder"
         run: docker buildx create --name airflow_cache
+      - name: "Build custom Airflow wheel package"
+        run: |
+          breeze release-management prepare-airflow-package --package-format wheel;
+          cp ./dist/* ./docker-context-files;
+      - name: Login to ghcr.io
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTOR: ${{ github.actor }}
+        run: echo "${GITHUB_TOKEN}" | docker login ghcr.io -u ${ACTOR} --password-stdin
       - name: "Build and push the custom PROD image"
         run: |
           breeze prod-image build \
+            --python ${{ github.event.inputs.pythonVersion }} \
             --python-image python:${{ github.event.inputs.pythonVersion }}-slim-bookworm \
             --airflow-constraints-location https://raw.githubusercontent.com/apache/airflow/constraints-${{ github.event.inputs.airflowVersion }}/constraints-${{ github.event.inputs.pythonVersion }}.txt \
             --install-packages-from-context \
