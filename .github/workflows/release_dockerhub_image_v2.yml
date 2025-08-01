@@ -57,7 +57,8 @@ jobs:
       - name: "Install Breeze"
         uses: ./.github/actions/breeze
         with:
-          use-uv: "false"
+          use-uv: true
+          python-version: ${{ github.event.inputs.pythonVersion }}
       - name: "Install buildx plugin"
         # yamllint disable rule:line-length
         run: |
