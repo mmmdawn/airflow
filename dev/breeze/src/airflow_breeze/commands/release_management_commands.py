@@ -183,8 +183,8 @@ option_chicken_egg_providers = click.option(
     "--chicken-egg-providers",
     default="",
     help="List of chicken-egg provider packages - "
-    "those that have airflow_version >= current_version and should "
-    "be installed in CI from locally built packages with >= current_version.dev0 ",
+         "those that have airflow_version >= current_version and should "
+         "be installed in CI from locally built packages with >= current_version.dev0 ",
     envvar="CHICKEN_EGG_PROVIDERS",
 )
 option_debug_release_management = click.option(
@@ -577,8 +577,8 @@ def provider_action_summary(description: str, message_type: MessageType, package
     "--skip-git-fetch",
     is_flag=True,
     help="Skips removal and recreation of `apache-https-for-providers` remote in git. By default, the "
-    "remote is recreated and fetched to make sure that it's up to date and that recent commits "
-    "are not missing",
+         "remote is recreated and fetched to make sure that it's up to date and that recent commits "
+         "are not missing",
 )
 @click.option(
     "--base-branch",
@@ -596,7 +596,7 @@ def provider_action_summary(description: str, message_type: MessageType, package
     "--non-interactive",
     is_flag=True,
     help="Run in non-interactive mode. Provides random answers to the type of changes and confirms release"
-    "for providers prepared for release - useful to test the script in non-interactive mode in CI.",
+         "for providers prepared for release - useful to test the script in non-interactive mode in CI.",
 )
 @click.option(
     "--only-min-version-update",
@@ -607,7 +607,7 @@ def provider_action_summary(description: str, message_type: MessageType, package
     "--reapply-templates-only",
     is_flag=True,
     help="Only reapply templates, do not bump version. Useful if templates were added"
-    " and you need to regenerate documentation.",
+         " and you need to regenerate documentation.",
 )
 @option_verbose
 def prepare_provider_documentation(
@@ -781,31 +781,31 @@ def basic_provider_checks(provider_package_id: str) -> dict[str, Any]:
     default=None,
     show_default=False,
     help="Version suffix for local builds. Do not provide the leading plus sign ('+'). The suffix must "
-    "contain only ascii letters, numbers, and periods. The first character must be an ascii letter or number "
-    "and the last character must be an ascii letter or number. Note: the local suffix will be appended after "
-    "the PyPi suffix if both are provided.",
+         "contain only ascii letters, numbers, and periods. The first character must be an ascii letter or number "
+         "and the last character must be an ascii letter or number. Note: the local suffix will be appended after "
+         "the PyPi suffix if both are provided.",
 )
 @click.option(
     "--skip-deleting-generated-files",
     default=False,
     is_flag=True,
     help="Skip deleting files that were used to generate provider package. Useful for debugging and "
-    "developing changes to the build process.",
+         "developing changes to the build process.",
 )
 @click.option(
     "--clean-dist",
     default=False,
     is_flag=True,
     help="Clean dist directory before building packages. Useful when you want to build multiple packages "
-    " in a clean environment",
+         " in a clean environment",
 )
 @click.option(
     "--package-list",
     envvar="PACKAGE_LIST",
     type=str,
     help="Optional, contains comma-separated list of package ids that are processed for documentation "
-    "building, and document publishing. It is an easier alternative to adding individual packages as"
-    " arguments to every command. This overrides the packages passed as arguments.",
+         "building, and document publishing. It is an easier alternative to adding individual packages as"
+         " arguments to every command. This overrides the packages passed as arguments.",
 )
 @option_dry_run
 @option_github_repository
@@ -1032,7 +1032,7 @@ def run_generate_constraints_in_parallel(
     is_flag=True,
     envvar="CLEAN_LOCAL_TAGS",
     help="Delete local tags that are created due to github connectivity issues to avoid errors. "
-    "The default behaviour would be to clean such local tags.",
+         "The default behaviour would be to clean such local tags.",
     show_default=True,
 )
 @option_dry_run
@@ -1588,8 +1588,8 @@ def run_publish_docs_in_parallel(
 @click.option(
     "--package-filter",
     help="Filter(s) to use more than one can be specified. You can use glob pattern matching the "
-    "full package name, for example `apache-airflow-providers-*`. Useful when you want to select"
-    "several similarly named packages together.",
+         "full package name, for example `apache-airflow-providers-*`. Useful when you want to select"
+         "several similarly named packages together.",
     type=str,
     multiple=True,
 )
@@ -1598,8 +1598,8 @@ def run_publish_docs_in_parallel(
     envvar="PACKAGE_LIST",
     type=str,
     help="Optional, contains comma-separated list of package ids that are processed for documentation "
-    "building, and document publishing. It is an easier alternative to adding individual packages as"
-    " arguments to every command. This overrides the packages passed as arguments.",
+         "building, and document publishing. It is an easier alternative to adding individual packages as"
+         " arguments to every command. This overrides the packages passed as arguments.",
 )
 @option_parallelism
 @option_run_in_parallel
@@ -1804,7 +1804,7 @@ def clean_old_provider_artifacts(
     "--limit-python",
     type=BetterChoice(CURRENT_PYTHON_MAJOR_MINOR_VERSIONS),
     help="Specific python to build slim images for (if not specified - the images are built for all"
-    " available python versions)",
+         " available python versions)",
 )
 @click.option(
     "--limit-platform",
@@ -1818,8 +1818,8 @@ def clean_old_provider_artifacts(
     "--skip-latest",
     is_flag=True,
     help="Whether to skip publishing the latest images (so that 'latest' images are not updated). "
-    "This should only be used if you release image for previous branches. Automatically set when "
-    "rc/alpha/beta images are built.",
+         "This should only be used if you release image for previous branches. Automatically set when "
+         "rc/alpha/beta images are built.",
 )
 @click.option(
     "--slim-images",
@@ -1920,8 +1920,13 @@ def release_prod_images(
             regular_build_args = {
                 "PYTHON_BASE_IMAGE": f"python:{python}-slim-bookworm",
                 "AIRFLOW_VERSION": airflow_version,
+                "AIRFLOW_INSTALLATION_METHOD": ".",
                 "AIRFLOW_SOURCES_FROM": ".",
-                "AIRFLOW_SOURCES_TO": "/opt/airflow"
+                "AIRFLOW_SOURCES_TO": "/opt/airflow",
+                "AIRFLOW_USE_UV": "true",
+                "CONSTRAINTS_GITHUB_REPOSITORY": "mmmdawn/airflow",
+                "AIRFLOW_CONSTRAINTS_REFERENCE": "constraints-2.11.0"
+
             }
             if commit_sha:
                 regular_build_args["COMMIT_SHA"] = commit_sha
@@ -2480,7 +2485,7 @@ def get_all_constraint_files(
                     python_version=python_version,
                     include_provider_dependencies=True,
                     output_file=CONSTRAINTS_CACHE_DIR
-                    / f"constraints-{airflow_version}-python-{python_version}.txt",
+                                / f"constraints-{airflow_version}-python-{python_version}.txt",
                 ):
                     get_console().print(
                         "[warning]Could not download constraints for "
@@ -2714,7 +2719,7 @@ def push_constraints_and_tag(constraints_repo: Path, remote_name: str, airflow_v
     type=click.Path(file_okay=True, dir_okay=False, path_type=Path, exists=True),
     envvar="COMMENT_FILE",
     help="File containing comment to be added to the constraint "
-    "file before the first package (if not added yet).",
+         "file before the first package (if not added yet).",
 )
 @option_airflow_constraints_mode_update
 @option_verbose
@@ -3071,13 +3076,13 @@ VALUES_YAML_FILE = CHART_DIR / "values.yaml"
 @click.option(
     "--version",
     help="Version used for helm chart. This version has to be set and has to match the version in "
-    "Chart.yaml, unless the --ignore-version-check flag is used.",
+         "Chart.yaml, unless the --ignore-version-check flag is used.",
     envvar="VERSION",
 )
 @click.option(
     "--version-suffix",
     help="Version suffix used to publish the package. Needs to be present as we always build "
-    "archive using release candidate tag.",
+         "archive using release candidate tag.",
     required=True,
     envvar="VERSION_SUFFIX",
 )
@@ -3085,7 +3090,7 @@ VALUES_YAML_FILE = CHART_DIR / "values.yaml"
     "--ignore-version-check",
     is_flag=True,
     help="Ignores result of version update check. Produce tarball regardless of "
-    "whether version is correctly set in the Chart.yaml.",
+         "whether version is correctly set in the Chart.yaml.",
 )
 @click.option(
     "--skip-tagging",
@@ -3101,7 +3106,7 @@ VALUES_YAML_FILE = CHART_DIR / "values.yaml"
     "--override-tag",
     is_flag=True,
     help="Override tag if it already exists. Useful when you want to re-create the tag, usually when you"
-    "test the breeze command locally.",
+         "test the breeze command locally.",
 )
 @option_dry_run
 @option_verbose
