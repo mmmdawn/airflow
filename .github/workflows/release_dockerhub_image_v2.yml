@@ -76,7 +76,7 @@ jobs:
           breeze prod-image build \
             --python python:${{ github.event.inputs.pythonVersion }}-slim-bookworm \
             --airflow-constraints-location https://raw.githubusercontent.com/apache/airflow/constraints-${{ github.event.inputs.airflowVersion }}/constraints-${{ github.event.inputs.pythonVersion }}.txt \
-            --install-packages-from-contex \
+            --install-packages-from-context \
             --push \
             --platform linux/amd64 \
             --use-uv \
