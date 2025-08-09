@@ -201,14 +201,15 @@ class StandardTaskRunner(BaseTaskRunner):
         return self.process.pid
 
     def _read_task_utilization(self):
-        dag_id = self._task_instance.dag_id
-        task_id = self._task_instance.task_id
+        dag_id = self._task_instance.dag_id.replace('.', 'dotsep')
+        task_id = self._task_instance.task_id.replace('.', 'dotsep')
+        task_id = f"{task_id}mapindex{self._task_instance.map_index}"
 
         try:
             while True:
                 with self.process.oneshot():
-                    mem_usage = self.process.memory_percent()
-                    cpu_usage = self.process.cpu_percent()
+                    mem_usage = self.process.memory_info().rss / 1024 ** 2
+                    cpu_usage = sum(self.process.cpu_times())
 
                     Stats.gauge(f"task.mem_usage.{dag_id}.{task_id}", mem_usage)
                     Stats.gauge(f"task.cpu_usage.{dag_id}.{task_id}", cpu_usage)

@@ -263,7 +263,7 @@ def _run_raw_task(
     # Initialize final state counters at zero
     for state in State.task_states:
         Stats.incr(
-            f"ti.finish.{ti.task.dag_id}.{ti.task.task_id}.{state}",
+            f"ti.finish.{ti.task.dag_id.replace('.', 'dotsep')}.{ti.task.task_id.replace('.', 'dotsep')}.{state}",
             count=0,
             tags=ti.stats_tags,
         )
