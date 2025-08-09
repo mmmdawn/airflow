@@ -202,8 +202,7 @@ class StandardTaskRunner(BaseTaskRunner):
 
     def _read_task_utilization(self):
         dag_id = self._task_instance.dag_id.replace('.', 'dotsep')
-        task_id = self._task_instance.task_id.replace('.', 'dotsep')
-        task_id = f"{task_id}mapindex{self._task_instance.map_index}"
+        task_id = f"{self._task_instance.task_id.replace('.', 'dotsep')}.{self._task_instance.map_index}"
 
         try:
             while True:
