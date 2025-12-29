@@ -154,7 +154,11 @@ class SecretsMasker(logging.Filter):
     """Redact secrets from logs."""
 
     replacer: Pattern | None = None
+    replacers: list[Pattern]
     patterns: set[str]
+
+    # Keep individual regexes reasonably small to avoid re2 DFA OOM on large pattern sets.
+    _MAX_REGEX_CHARS = 10000
 
     ALREADY_FILTERED_FLAG = "__SecretsMasker_filtered"
     MAX_RECURSION_DEPTH = 5
@@ -162,6 +166,7 @@ class SecretsMasker(logging.Filter):
     def __init__(self):
         super().__init__()
         self.patterns = set()
+        self.replacers = []
 
     @cached_property
     def _record_attrs_to_ignore(self) -> Iterable[str]:
@@ -205,7 +210,7 @@ class SecretsMasker(logging.Filter):
             # "private" flag that stops us needing to process it more than once
             return True
 
-        if self.replacer:
+        if self.replacer or self.replacers:
             for k, v in record.__dict__.items():
                 if k not in self._record_attrs_to_ignore:
                     record.__dict__[k] = self.redact(v)
@@ -258,11 +263,16 @@ class SecretsMasker(logging.Filter):
                     return self._redact(item=tmp, name=name, depth=depth, max_depth=max_depth)
                 return tmp
             elif isinstance(item, str):
-                if self.replacer:
+                if self.replacer or self.replacers:
                     # We can't replace specific values, but the key-based redacting
                     # can still happen, so we can't short-circuit, we need to walk
                     # the structure.
-                    return self.replacer.sub("***", str(item))
+                    redacted = str(item)
+                    if self.replacer:
+                        redacted = self.replacer.sub("***", redacted)
+                    for replacer in self.replacers:
+                        redacted = replacer.sub("***", redacted)
+                    return redacted
                 return item
             elif isinstance(item, (tuple, set)):
                 # Turn set in to tuple!
@@ -352,7 +362,28 @@ class SecretsMasker(logging.Filter):
                         new_mask = True
 
             if new_mask:
-                self.replacer = re2.compile("|".join(self.patterns))
+                self.replacer = None
+                self.replacers = []
+                if self.patterns:
+                    chunks: list[str] = []
+                    current = ""
+                    for pattern in sorted(self.patterns):
+                        if not current:
+                            current = pattern
+                            continue
+                        # +1 for the '|' between patterns.
+                        if len(current) + 1 + len(pattern) > self._MAX_REGEX_CHARS:
+                            chunks.append(current)
+                            current = pattern
+                        else:
+                            current = current + "|" + pattern
+                    if current:
+                        chunks.append(current)
+
+                    if len(chunks) == 1:
+                        self.replacer = re2.compile(chunks[0])
+                    else:
+                        self.replacers = [re2.compile(chunk) for chunk in chunks]
 
         elif isinstance(secret, collections.abc.Iterable):
             for v in secret:
